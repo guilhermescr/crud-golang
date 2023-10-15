@@ -3,6 +3,7 @@ package person
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/guilhermescr/crud-golang/domain"
@@ -15,15 +16,37 @@ type Service struct {
 
 func NewService(dbFilePath string) (Service, error) {
 	// check if file exists
-	 _, err := os.Stat(dbFilePath)
-	 if err != nil {
+	_, err := os.Stat(dbFilePath)
+	if err != nil {
 		if os.IsNotExist(err) {
-			// create an empty file
+			err = createEmptyFile(dbFilePath)
+			if err != nil {
+				return Service{}, err
+			}
+			return Service{
+				dbFilePath: dbFilePath,
+				people: domain.People{},
+			}, nil
 		}
-	 }
+	}
 
-	// if it doesn't, create empty file
-	// if it does, read the file and update the variable people from Service with people from the file
+	jsonFile, err := os.Open(dbFilePath)
+	if err != nil {
+		return Service{}, fmt.Errorf("Error trying to open file that contains all people: %s", err.Error())
+	}
+
+	jsonFileContentByte, err := io.ReadAll(jsonFile)
+	if err != nil {
+		return Service{}, fmt.Errorf("Error trying to read file: %s", err.Error())
+	}
+
+	var allPeople domain.People
+	json.Unmarshal(jsonFileContentByte, &allPeople)
+
+	return Service{
+		dbFilePath: dbFilePath,
+		people: allPeople,
+	}, nil
 }
 
 func createEmptyFile(dbFilePath string) error {
@@ -42,4 +65,14 @@ func createEmptyFile(dbFilePath string) error {
 	}
 
 	return nil
+}
+
+func (s Service) Create(person domain.Person) error {
+
+	return nil
+}
+
+func (s Service) exists(person domain.Person) bool {
+	for index, currentPerson := range
+	return false
 }
